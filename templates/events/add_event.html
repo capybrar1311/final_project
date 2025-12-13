@@ -1,0 +1,29 @@
+{% extends "base.html"%}
+{% block title %} Все события {% endblock %}
+
+{% block content %}
+    <h3>
+        <a href="{{url_for('events')}}">
+            Назад
+        </a>
+    </h3>
+    <h1>Создание мероприятия</h1>
+        <form  method="post">
+           <div>
+                <label for="name">Название мероприятия</label>
+                <input type="text" name="name" id="name" placeholder="Название">
+           </div>
+
+           <div>
+                <label for="date">Дата</label>
+                <input type="date" name="date" id="date" placeholder="Дата">
+           </div>
+
+            <div>
+                <label for="time">Начало</label>
+                <input type="time" name="time" id="time" placeholder="Время">
+            </div>
+
+            <button type="submit" class="btn btn-success">Создать</button>
+        </form>
+{% endblock %}

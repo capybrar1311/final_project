@@ -1,0 +1,23 @@
+{% extends "base.html"%}
+{% block title %} Все события {% endblock %}
+
+{% block content %}
+    <h1>{% if act %} Редактирование номера {% else %} Создание номера {% endif %}</h1>
+        <form method="post">
+           <div style="padding-top: 1%">
+                <label for="name" class="form-label">Название</label>
+                <input type="text" class="form-control" name="name" id="name" placeholder="Название" {% if act %} value='{{act.name}}' {% endif %}>
+           </div>
+
+            <div style="padding-top: 1%">
+                <label for="number" class="form-label">Порядковый номер</label>
+                <input type="number" class="form-control" name="number" id="number" placeholder="Название" {% if act %} value='{{act.number}}' {% endif %}>
+           </div>
+
+           <div style="padding-top: 1%">
+                <label for="performer" class="form-label">Исполнитель</label>
+                <input type="text" class="form-control" name="performer" id="performer" placeholder="Имя Фамилия (можно указать несколько человек)" {% if act %} value='{{act.performer}}' {% endif %}>
+           </div>
+            <button type="submit" class="btn btn-success" style="margin-top: 3%; float: right"> {% if act %} Сохранить {% else %} Создать {% endif %}</button>
+        </form>
+{% endblock %}

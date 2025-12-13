@@ -1,0 +1,16 @@
+{% extends "base.html"%}
+
+{% block content %}
+    <h1>Номера за все время</h1>
+    <table class="table table-bordered">
+        {% for act in acts %}
+             <tr>
+                 {% if not act.deleted_at %}
+                    <td>{{ act.number }}</td>
+                    <td>{{ act.name }}</td>
+                    <td>{{ act.performer }}</td>
+                 {% endif %}
+             </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
