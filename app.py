@@ -236,6 +236,42 @@ def add_event_type():
     data_base.close()
     return render_template('event_types/add_event_type.html')
 
+@app.route('/delete_event_type/<int:id>', methods=['GET', 'POST'])
+def delete_event_type(id):
+
+    data_base = sqlite3.connect('events.db')
+    cursor = data_base.cursor()
+    cursor.row_factory = sqlite3.Row
+
+    cursor.execute('''
+        DELETE FROM event_type WHERE id = ?
+        ''', (id,))
+    data_base.commit()
+    data_base.close()
+    return redirect(url_for('event_type_list'))
+
+@app.route('/event_type_detail/<int:type_id>', methods=['GET', 'POST'])
+def event_type_detail(type_id):
+
+    data_base = sqlite3.connect('events.db')
+    cursor = data_base.cursor()
+    cursor.row_factory = sqlite3.Row
+    cursor.execute('''
+        SELECT * FROM event_type WHERE id = ?
+        ''', (type_id,))
+
+    event_type = cursor.fetchone()
+    if request.method == 'POST':
+        cursor.execute('''
+            UPDATE event_type SET name = ?, description = ? WHERE id = ?
+            ''', (request.form.get('name'), request.form.get('description'), type_id))
+        data_base.commit()
+        data_base.close()
+        return redirect(url_for('event_type_list'))
+    data_base.close()
+    return render_template('event_types/add_event_type.html', event_type=event_type)
+
+
 # НЕ СТИРАТЬ
 if __name__ == '__main__':
     app.run(debug=True)

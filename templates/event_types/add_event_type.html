@@ -2,23 +2,37 @@
 {% block title %} Все события {% endblock %}
 
 {% block content %}
-    <h3>
-        <a href="{{url_for('event_type_list')}}">
-            Назад
+    <h3 style="padding-top: 10px">
+        <a href="{{url_for('event_type_list')}}" style='color: lightgray'>
+            <svg xmlns="http://www.w3.org/2000/svg" width="4%" height="4%" fill="currentColor" class="bi bi-house-door" viewBox="0 0 16 16">
+                <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v4z"/>
+            </svg>
         </a>
     </h3>
-    <h1>Создание вида события</h1>
+    <h1>
+        {% if event_type %}
+            Редактирование вида события
+        {% else %}
+            Создание вида события
+        {% endif %}
+    </h1>
         <form  method="post">
            <div>
                 <label for="name">Название</label>
-                <input type="text" name="name" id="name" placeholder="Название">
+                <input type="text" name="name" id="name" placeholder="Название" {% if event_type %} value='{{event_type.name}}' {% endif %}>
            </div>
 
             <div>
                 <label for="event_type">Особенности</label>
-                <input type="text" name="description" id="event_type" placeholder="Особенности">
+                <input type="text" name="description" id="event_type" placeholder="Особенности" {% if event_type %} value='{{event_type.description}}' {% endif %}>
             </div>
 
-            <button type="submit" class="btn btn-success">Создать</button>
+            <button type="submit" class="btn btn-success">
+                {% if event_type %}
+                    Сохранить
+                {% else %}
+                    Создать
+                {% endif %}
+            </button>
         </form>
 {% endblock %}
