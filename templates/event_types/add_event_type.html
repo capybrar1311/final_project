@@ -1,0 +1,24 @@
+{% extends "base.html"%}
+{% block title %} Все события {% endblock %}
+
+{% block content %}
+    <h3>
+        <a href="{{url_for('event_type_list')}}">
+            Назад
+        </a>
+    </h3>
+    <h1>Создание вида события</h1>
+        <form  method="post">
+           <div>
+                <label for="name">Название</label>
+                <input type="text" name="name" id="name" placeholder="Название">
+           </div>
+
+            <div>
+                <label for="event_type">Особенности</label>
+                <input type="text" name="description" id="event_type" placeholder="Особенности">
+            </div>
+
+            <button type="submit" class="btn btn-success">Создать</button>
+        </form>
+{% endblock %}

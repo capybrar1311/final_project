@@ -176,8 +176,8 @@ def act_detail(id):
 
     if request.method == 'POST':
         cursor.execute('''
-            UPDATE act SET number = ?, name = ?, performer = ? WHERE id = ?
-            ''', (request.form.get('number'), request.form.get('name'), request.form.get('performer'), id))
+            UPDATE act SET number = ?, name = ?, performer = ?, updated_at = ? WHERE id = ?
+            ''', (request.form.get('number'), request.form.get('name'), request.form.get('performer'), datetime.now(), id))
         data_base.commit()
         data_base.close()
         return redirect(url_for('event_detail', id=act['event_id']))
@@ -200,6 +200,41 @@ def delete_act(id):
         data_base.close()
         return redirect(url_for('event_detail', id=int(*act)))
     return redirect(url_for('event_detail', id=int(*act)))
+
+@app.route('/event_type_list/', methods=['GET'])
+def event_type_list():
+    data_base = sqlite3.connect('events.db')
+    cursor = data_base.cursor()
+    cursor.row_factory = sqlite3.Row
+    cursor.execute(''' CREATE TABLE IF NOT EXISTS event_type (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL unique,
+        description TEXT NOT NULL default "---")
+                   ''')
+
+    cursor.execute('''
+        SELECT * FROM event_type
+        ''')
+    event_types = cursor.fetchall()
+    data_base.close()
+    return render_template('event_types/event_type_list.html', event_types=event_types)
+
+@app.route('/add_event_type/', methods=['GET', 'POST'])
+def add_event_type():
+
+    data_base = sqlite3.connect('events.db')
+    cursor = data_base.cursor()
+    cursor.row_factory = sqlite3.Row
+
+    if request.method == 'POST':
+        cursor.execute('''
+            INSERT INTO event_type (name, description) VALUES (?, ?)
+            ''', (request.form.get('name'), request.form.get('description')))
+        data_base.commit()
+        data_base.close()
+        return redirect(url_for('event_type_list'))
+    data_base.close()
+    return render_template('event_types/add_event_type.html')
 
 # НЕ СТИРАТЬ
 if __name__ == '__main__':
