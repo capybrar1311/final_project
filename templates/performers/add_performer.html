@@ -1,0 +1,30 @@
+{% extends "base.html"%}
+{% block title %} Все события {% endblock %}
+
+{% block content %}
+
+    <h1>{% if performer %} Редактирование данных исполнителя {% else %} Добавление исполнителя {% endif %}</h1>
+        <form class="form-control" method="post">
+            <div style="padding-top: 1%">
+                <label for="last_name" class="form-label">Фамилия</label>
+                <input type="text" class="form-control" name="last_name" id="last_name" placeholder="Фамилия исполнителя" {% if performer %} value='{{performer.last_name}}' {% endif %}>
+           </div>
+
+           <div style="padding-top: 1%">
+                <label for="first_name" class="form-label">Имя</label>
+                <input type="text" class="form-control" name="first_name" id="first_name" placeholder="Имя исполнителя" {% if performer %} value='{{performer.first_name}}' {% endif %}>
+           </div>
+
+            <div style="padding-top: 1%">
+                <label for="middle_name" class="form-label">Отчество</label>
+                <input type="text" class="form-control" name="middle_name" id="middle_name" placeholder="Отчество исполнителя" {% if performer %} value='{{performer.middle_name}}' {% endif %}>
+           </div>
+
+            <div style="padding-top: 1%">
+                <label for="location_city" class="form-label">Откуда</label>
+                <input type="text" class="form-control" name="location_city" id="location_city" placeholder="Город" {% if performer %} value='{{performer.location_city}}' {% endif %}>
+           </div>
+
+            <button type="submit" class="btn btn-success" style="margin-top: 3%; float: right"> {% if performer %} Сохранить {% else %} Создать {% endif %}</button>
+        </form>
+{% endblock %}
