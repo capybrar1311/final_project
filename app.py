@@ -30,7 +30,11 @@ def events():
     today = date.today()
     today = today.strftime("%Y-%m-%d")
     cursor.execute('''
-        SELECT * FROM events WHERE date > ?
+        SELECT events.id, events.name, events.date, events.time, event_type.name as t_name FROM events
+        LEFT JOIN event_type_event ON events.id = event_type_event.event_id
+        LEFT JOIN event_type ON event_type_event.event_type_id = event_type.id
+        WHERE events.date > ? AND events.deleted_at IS NULL
+        ORDER BY events.date
         ''', (today,))
     events = cursor.fetchall()
     data_base.commit()
@@ -66,6 +70,13 @@ def add_event():
         name = request.form.get('name')
         request_date = request.form.get('date')
         time = request.form.get('time')
+        event_type_name = request.form.get('event_type_name')
+        event_type_id = 2
+
+        cursor.execute('''
+        SELECT id from event_type WHERE name is ?''', (event_type_name,))
+        event_type_id = cursor.fetchone()
+        event_type_id = int(*event_type_id)
 
         today = date.today()
         today = today.strftime("%Y-%m-%d")
@@ -76,6 +87,12 @@ def add_event():
         INSERT INTO events (name, date, time, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?)
         ''', (name, request_date, time, created_at, updated_at))
+
+        cursor.execute(''' 
+        INSERT INTO event_type_event (event_type_id, event_id)
+        VALUES (?, ?)
+        ''', (event_type_id, cursor.lastrowid))
+
         data_base.commit()
         data_base.close()
         return redirect(url_for('events'))
@@ -271,6 +288,23 @@ def event_type_detail(type_id):
     data_base.close()
     return render_template('event_types/add_event_type.html', event_type=event_type)
 
+@app.route('/set_event_type/<int:type_id>', methods=['GET', 'POST'])
+def set_event_type(type_id):
+
+    data_base = sqlite3.connect('events.db')
+    cursor = data_base.cursor()
+    cursor.row_factory = sqlite3.Row
+    #TODO приделать обновление типа события
+    #TODO прикрутить JOIN c event_type чтобы доставать
+    if request.method == 'POST':
+        cursor.execute('''
+            UPDATE event_type_event SET type_id = ? WHERE event_id = ?
+            ''', (type_id, request.form.get('event_id')))
+        data_base.commit()
+        data_base.close()
+        return redirect(url_for('event_detail')
+def index():
+    return render_template('index.html')
 
 # НЕ СТИРАТЬ
 if __name__ == '__main__':

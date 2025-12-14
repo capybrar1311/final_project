@@ -28,6 +28,7 @@
                         <td><h5>Дата</h5></td>
                             <td><h5>Название</h5></td>
                             <td><h5>Начало в</h5></td>
+                            <td><h5>Вид события</h5></td>
                         <td>
                             <center>
                                 <h5>Редактировать</h5>
@@ -42,6 +43,7 @@
                             <td>{{ event.date }}</td>
                             <td>{{ event.name }}</td>
                             <td>{{ event.time }}</td>
+                            <td>{% if event.t_name %}{{ event.t_name }}{% else %}Не указано{% endif %}</td>
                             <td>
                                 <center>
                                     <a href="{{url_for('event_detail', id=event.id)}}">

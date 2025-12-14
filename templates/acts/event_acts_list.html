@@ -15,6 +15,14 @@
         </h1>
     </center>
 
+    <form action="{{url_for('set_event_type', type_id=2)}}" method="post">
+        #TODO добавить выпадающий список с видами событий
+        <input type="text" class="form-control" name="type_name" id="type_name" placeholder="Укажите тип" {% if %}>
+        <input type="" class="form-control" name="type_name" id="type_name" placeholder="Укажите тип" {% if %}>
+        <button type="submit" class="btn btn-success">
+        </button>
+    </form>
+
     <form method="post" action="{{url_for('add_act', id=event_id)}}">
         <label for="add_table">Добавление номера в программу</label>
         <table class="table" id="add_table">
