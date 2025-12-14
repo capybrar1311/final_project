@@ -25,9 +25,16 @@
             </div>
 
             <div>
-                <label for="event_type">Вид события</label>
-                <input type="text" name="event_type_name" id="event_type" placeholder="Вид события">
-            </div>
+        <label for="type_id">Вид события</label>
+        <div style="display: flex">
+            <select class="form-select" name="type_id" id="type_id">
+                {% for type in event_types %}
+                <option value="{{type.id}}">
+                    {{type.name}}
+                </option>
+                {% endfor %}
+                </select>
+        </div>
 
             <button type="submit" class="btn btn-success">Создать</button>
         </form>

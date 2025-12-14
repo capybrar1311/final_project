@@ -15,12 +15,26 @@
         </h1>
     </center>
 
-    <form action="{{url_for('set_event_type', type_id=2)}}" method="post">
-        #TODO добавить выпадающий список с видами событий
-        <input type="text" class="form-control" name="type_name" id="type_name" placeholder="Укажите тип" {% if %}>
-        <input type="" class="form-control" name="type_name" id="type_name" placeholder="Укажите тип" {% if %}>
-        <button type="submit" class="btn btn-success">
+    <form action="{{ url_for('set_event_type', id=event_id) }}" method="post">
+        <label for="type_id">Вид события</label>
+        <div style="display: flex">
+        <select class="form-select" name="type_id" id="type_id">
+            {% if not current_event_type %}
+                <option selected value="2">Выберите вид</option>
+            {% endif %}
+            {% for type in event_types %}
+                <option value="{{type.id}}"
+                        {% if current_event_type and type.name == current_event_type.et_name%}
+                        selected
+                        {% endif %}>
+                    {{type.name}}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-success" >
+            Сохранить
         </button>
+        </div>
     </form>
 
     <form method="post" action="{{url_for('add_act', id=event_id)}}">
@@ -51,21 +65,21 @@
     </center>
     {% if acts %}
         <table class="table table-bordered">
-                {% for act in acts %}
-                    <tr>
-                        {% if not act.deleted_at %}
-                            <td>{{ act.number }}</td>
-                            <td>{{ act.name }}</td>
-                            <td>{{ act.performer }}</td>
-                            <td>
-                                <center>
-                                    <a href="{{url_for('act_detail', id=act.id)}}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
-                                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
-                                        </svg>
-                                    </a>
-                                </center>
-                            </td>
+            {% for act in acts %}
+                <tr>
+                    {% if not act.deleted_at %}
+                        <td>{{ act.number }}</td>
+                        <td>{{ act.name }}</td>
+                        <td>{{ act.performer }}</td>
+                        <td>
+                            <center>
+                                <a href="{{url_for('act_detail', id=act.id)}}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                    </svg>
+                                </a>
+                            </center>
+                        </td>
                             <td>
                                 <center>
                                     <form action="{{url_for('delete_act', id=act.id)}}" method="post">
@@ -78,16 +92,15 @@
                                     </form>
                                 </center>
                             </td>
-                        {% endif %}
-                    </tr>
-                {% endfor %}
-            </table>
-        {% else %}
-            <center>
-                <h5 style="margin: 10%; display: block">
-                    Нет добавленных номеров
-                </h5>
-            </center>
-
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <center>
+            <h5 style="margin: 10%; display: block">
+                Нет добавленных номеров
+            </h5>
+        </center>
         {% endif %}
 {% endblock %}
