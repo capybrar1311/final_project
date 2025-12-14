@@ -58,8 +58,14 @@ def event_detail(id):
     event_types = cursor.fetchall()
 
     cursor.execute('''
-            SELECT *
+            SELECT act.id as act_id, 
+                   act.name as act_name, 
+                   act.number as act_number, 
+                   act.performer as act_performer,
+                   act_type_id as act_type_id,
+                   act_type.name as act_type_name
             FROM act
+            JOIN act_type ON act.act_type_id = act_type.id
             WHERE (event_id == ?) AND (deleted_at IS NULL) ORDER BY act.number
             ''', (id,))
     acts = cursor.fetchall()
@@ -171,18 +177,12 @@ def add_act(id):
 
         created_at = today
         updated_at = today
-
-        try:
-            cursor.execute('''
-                INSERT INTO act (number, name, performer, created_at, updated_at, event_id)
-                VALUES (?, ?, ?, ?, ?, ?)''', (number, name, performer, created_at, updated_at, id))
-            data_base.commit()
-
-        except Exception as e:
-            data_base.close()
+        cursor.execute('''
+            INSERT INTO act (number, name, performer, created_at, updated_at, event_id)
+            VALUES (?, ?, ?, ?, ?, ?)''', (number, name, performer, created_at, updated_at, id))
+        data_base.commit()
         data_base.close()
         return redirect(url_for('event_detail', id=id))
-
     return render_template('acts/add_act.html')
 
 @app.route('/act_detail/<int:id>', methods=['GET', 'POST'])
@@ -195,14 +195,29 @@ def act_detail(id):
         ''', (id,))
     act = cursor.fetchone()
 
+    cursor.execute('''
+        SELECT * FROM act_type
+        ''')
+    act_types = cursor.fetchall()
+
+    cursor.execute('''
+        SELECT * FROM act_type WHERE id = ?
+        ''', (request.form.get('act_type_id'),))
+    current_act_type = cursor.fetchone()
+
     if request.method == 'POST':
         cursor.execute('''
-            UPDATE act SET number = ?, name = ?, performer = ?, updated_at = ? WHERE id = ?
-            ''', (request.form.get('number'), request.form.get('name'), request.form.get('performer'), datetime.now(), id))
+            UPDATE act SET number = ?, name = ?, performer = ?, updated_at = ?, act_type_id = ? WHERE id = ?
+            ''', (request.form.get('number'),
+                  request.form.get('name'),
+                  request.form.get('performer'),
+                  datetime.now(),
+                  request.form.get('act_type_id'),
+                  id))
         data_base.commit()
         data_base.close()
         return redirect(url_for('event_detail', id=act['event_id']))
-    return render_template('acts/add_act.html', act=act, args=request.args)
+    return render_template('acts/add_act.html', act=act, act_types=act_types, current_act_type=current_act_type, args=request.args)
 
 @app.route('/delete_act/<int:id>', methods=['GET', 'POST'])
 def delete_act(id):
@@ -323,6 +338,68 @@ def set_event_type(id):
         return redirect(url_for('event_detail', id=id))
     data_base.close()
     return render_template(url_for('event_detail', id=id))
+
+
+@app.route('/act_types/')
+def act_type_list():
+    data_base = sqlite3.connect('events.db')
+    cursor = data_base.cursor()
+    cursor.row_factory = sqlite3.Row
+    cursor.execute('''
+        SELECT * FROM act_type
+        ''')
+    act_types = cursor.fetchall()
+    data_base.close()
+    return render_template('act_types/act_type_list.html', act_types=act_types)
+
+@app.route('/add_act_type', methods=['GET', 'POST'])
+def add_act_type():
+    data_base = sqlite3.connect('events.db')
+    cursor = data_base.cursor()
+    cursor.row_factory = sqlite3.Row
+
+    if request.method == 'POST':
+        cursor.execute('''
+                       INSERT INTO act_type (name, description)
+                       VALUES (?, ?)
+                       ''', (request.form.get('name'), request.form.get('description')))
+        data_base.commit()
+        data_base.close()
+        return redirect(url_for('act_type_list'))
+    data_base.close()
+    return render_template('act_types/add_act_type.html')
+
+@app.route('/act_type_detail/<int:type_id>', methods=['GET', 'POST'])
+def act_type_detail(type_id):
+    data_base = sqlite3.connect('events.db')
+    cursor = data_base.cursor()
+    cursor.row_factory = sqlite3.Row
+    cursor.execute('''
+        SELECT * FROM act_type WHERE id = ?
+        ''', (type_id,))
+    act_type = cursor.fetchone()
+    if request.method == 'POST' and act_type is not None:
+        cursor.execute('''
+            UPDATE act_type SET name = ?, description = ? WHERE id = ?
+            ''', (request.form.get('name'), request.form.get('description'),type_id))
+        data_base.commit()
+        data_base.close()
+        return redirect(url_for('act_type_list'))
+    data_base.close()
+    return render_template('act_types/add_act_type.html', act_type=act_type)
+
+@app.route('/delete_act_type/<int:id>', methods=['GET', 'POST'])
+def delete_act_type(id):
+
+    data_base = sqlite3.connect('events.db')
+    cursor = data_base.cursor()
+    cursor.row_factory = sqlite3.Row
+    cursor.execute('''
+        DELETE FROM act_type WHERE id = ?
+        ''', (id,))
+    data_base.commit()
+    data_base.close()
+    return redirect(url_for('act_type_list'))
 
 # НЕ СТИРАТЬ
 if __name__ == '__main__':

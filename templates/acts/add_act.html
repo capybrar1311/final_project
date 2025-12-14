@@ -18,6 +18,24 @@
                 <label for="performer" class="form-label">Исполнитель</label>
                 <input type="text" class="form-control" name="performer" id="performer" placeholder="Имя Фамилия (можно указать несколько человек)" {% if act %} value='{{act.performer}}' {% endif %}>
            </div>
+
+            <div>
+                <label for="type_id">Вид номера</label>
+                 <select class="form-select" name="act_type_id" id="type_id">
+                     {% if not current_act_type %}
+                        <option selected value="2">Выберите вид</option>
+                     {% endif %}
+                     {% for type in act_types %}
+                        <option value="{{type.id}}"
+                                {% if current_act_type and type.name == current_act_type.et_name%}
+                                selected
+                                {% endif %}>
+                            {{type.name}}
+                        </option>
+                     {% endfor %}
+                 </select>
+            </div>
+
             <button type="submit" class="btn btn-success" style="margin-top: 3%; float: right"> {% if act %} Сохранить {% else %} Создать {% endif %}</button>
         </form>
 {% endblock %}
