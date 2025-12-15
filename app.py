@@ -69,7 +69,7 @@ def event_detail(id):
                    act.act_type_id as act_type_id,
                    act_type.name as act_type_name
             FROM act
-            JOIN act_type ON act.act_type_id = act_type.id
+            FULL JOIN act_type ON act.act_type_id = act_type.id
             WHERE (event_id == ?) AND (deleted_at IS NULL) ORDER BY act.number
             ''', (id,))
     acts_data = cursor.fetchall()
@@ -194,13 +194,22 @@ def add_act(id):
 
         number = request.form.get('number')
         name = request.form.get('name')
-        performer = request.form.get('performer')
         today = date.today()
         today = today.strftime("%Y-%m-%d")
 
         created_at = today
         updated_at = today
         if request.method == 'POST':
+            cursor.execute('''
+                           INSERT INTO act
+                           (number, name, event_id, created_at, updated_at)
+                           VALUES (?, ?, ?, ?, ?)
+                           ''', (number,
+                                 name,
+                                 id,
+                                 created_at,
+                                 updated_at))
+
             cursor.execute('''
                            UPDATE act
                            SET number      = ?,
@@ -213,15 +222,10 @@ def add_act(id):
                                  datetime.now(),
                                  request.form.get('act_type_id'),
                                  id))
-            if current_performers:
-                for p_id in p_ids:
-                    cursor.execute('''
-                                   INSERT INTO performer_act (act_id, performer_id)
-                                   VALUES (?, ?) ON CONFLICT (act_id, performer_id) DO NOTHING
-                                   ''', (id, p_id))
+
             data_base.commit()
             data_base.close()
-            return redirect(url_for('event_detail', id=act['event_id']))
+            return redirect(url_for('event_detail', id=id))
         return redirect(url_for('event_detail', id=id))
     return render_template('acts/add_act.html')
 
@@ -240,12 +244,11 @@ def act_detail(id):
     ''')
     performers = cursor.fetchall()
 
-    p_ids = list(int(i) for i in request.form.getlist('performer_ids[]'))
-    placeholders = ','.join('?' * len(p_ids))
-    sql = f'''
-                   SELECT * from performer WHERE id in ({placeholders})
-                   '''
-    cursor.execute(sql, p_ids)
+    cursor.execute('''
+                   SELECT * from performer_act 
+                   JOIN performer ON performer_act.performer_id = performer.id
+                  WHERE performer_act.act_id is ?
+                   ''', (id,))
     current_performers = cursor.fetchall()
 
     cursor.execute('''
@@ -254,20 +257,16 @@ def act_detail(id):
     act_types = cursor.fetchall()
 
     cursor.execute('''
-        SELECT * FROM act_type WHERE id = ?
-        ''', (request.form.get('act_type_id'),))
+        SELECT * FROM act WHERE id is ?
+        ''', (id,))
+    current_act_type_id = cursor.fetchone()
+
+    cursor.execute('''
+        SELECT * FROM act_type WHERE id is ?
+        ''', (current_act_type_id['act_type_id'],))
     current_act_type = cursor.fetchone()
 
     if request.method == 'POST':
-
-        p_ids = list(int(i) for i in request.form.getlist('performer_ids[]'))
-
-        placeholders = ','.join('?' * len(p_ids))
-        sql = f'''
-                SELECT * from performer WHERE id in ({placeholders})
-                '''
-        cursor.execute(sql, p_ids)
-        current_performers = cursor.fetchall()
 
         cursor.execute('''
             UPDATE act SET number = ?, name = ?, updated_at = ?, act_type_id = ? WHERE id = ?
@@ -276,11 +275,6 @@ def act_detail(id):
                   datetime.now(),
                   request.form.get('act_type_id'),
                   id))
-        if current_performers:
-            for p_id in p_ids:
-                cursor.execute('''
-                    INSERT INTO performer_act (act_id, performer_id) VALUES (?, ?)
-                    ''', (id, p_id))
         data_base.commit()
         data_base.close()
         return redirect(url_for('event_detail', id=act['event_id']))
@@ -302,9 +296,14 @@ def delete_act(id):
         ''', (id,))
     act = cursor.fetchone()
     if request.method == 'POST':
+
         cursor.execute('''
             UPDATE act SET deleted_at = ? WHERE id = ?
             ''', (datetime.now(), id))
+
+        cursor.execute('''
+            DELETE FROM performer_act WHERE act_id = ?
+            ''', (id,))
         data_base.commit()
         data_base.close()
         return redirect(url_for('event_detail', id=int(*act)))
@@ -386,8 +385,6 @@ def set_event_type(id):
     data_base = sqlite3.connect('events.db')
     cursor = data_base.cursor()
     cursor.row_factory = sqlite3.Row
-    #TODO приделать обновление типа события
-    #TODO прикрутить JOIN c event_type чтобы доставать
 
     cursor.execute('''
         SELECT * FROM event_type_event WHERE event_id = ?
@@ -482,7 +479,16 @@ def performer_list():
     cursor = data_base.cursor()
     cursor.row_factory = sqlite3.Row
     cursor.execute('''
-        SELECT * FROM performer
+        SELECT
+    performer.id,
+    performer.first_name,
+    performer.last_name,
+    performer.middle_name,
+    performer.location_city,
+    COUNT(performer_act.performer_id) as performer_count
+    FROM performer
+        LEFT JOIN performer_act ON performer.id = performer_act.performer_id
+    GROUP BY performer.id
         ''')
     performers = cursor.fetchall()
     data_base.close()
@@ -536,6 +542,70 @@ def delete_performer(id):
     data_base.commit()
     data_base.close()
     return redirect(url_for('performer_list'))
+
+@app.route('/set_performer_act/<int:act_id>', methods=['GET', 'POST'])
+def set_performer_act(act_id):
+
+    data_base = sqlite3.connect('events.db')
+    cursor = data_base.cursor()
+    cursor.row_factory = sqlite3.Row
+    performer_id = request.form.get('performer_id')
+    cursor.execute('''
+        INSERT INTO performer_act (performer_id, act_id)
+        VALUES (?, ?) ON CONFLICT DO NOTHING
+        ''', (performer_id, act_id))
+
+    cursor.execute('''
+        SELECT * FROM performer_act WHERE act_id = ?
+        ''', (act_id,))
+    data_base.commit()
+    data_base.close()
+    return redirect(url_for('act_detail', id=act_id))
+
+@app.route('/delete_performer_act/<int:act_id>/<int:performer_id>', methods=['GET', 'POST'])
+def delete_performer_act(act_id, performer_id):
+
+    data_base = sqlite3.connect('events.db')
+    cursor = data_base.cursor()
+    cursor.row_factory = sqlite3.Row
+
+    cursor.execute('''
+        DELETE FROM performer_act WHERE performer_id = ? AND act_id = ?
+        ''', (performer_id, act_id))
+    data_base.commit()
+    data_base.close()
+    return redirect(url_for('act_detail', id=act_id))
+
+
+@app.route('/global_stat/')
+def global_stat():
+
+    data_base= sqlite3.connect('events.db')
+    cursor = data_base.cursor()
+    cursor.row_factory = sqlite3.Row
+    today = date.today()
+    today = today.strftime("%Y-%m-%d")
+    cursor.execute('''
+    SELECT COUNT(events.date) FROM events WHERE events.date > ? and events.deleted_at is null''', (today,))
+    future_events = cursor.fetchone()
+    future_events_count = int(*future_events)
+
+    cursor.execute('''
+    SELECT COUNT(events.date) FROM events WHERE events.date < ? and events.deleted_at is null''', (today,))
+    past_events = cursor.fetchone()
+    past_events_count = int(*past_events)
+
+    cursor.execute('''
+    SELECT COUNT(events.date) FROM events WHERE events.deleted_at is null''')
+    all_events = cursor.fetchone()
+    all_events_count = int(*all_events)
+
+    data_base.close()
+    return render_template('global_stat.html',
+                           future_events_count=future_events_count,
+                           past_events_count=past_events_count,
+                           all_events_count=all_events_count)
+
 # НЕ СТИРАТЬ
 if __name__ == '__main__':
     app.run(debug=True)

@@ -51,15 +51,10 @@
                          <input required type="text" class="form-control" name="name" id="name" placeholder="Название">
                      </td>
                      <td>
-                        <div>
+                        <div style="display: flex; padding-right: 10px">
                             <input required type="number" class="form-control" name="number" id="number" placeholder="Номер по порядку">
-                       </div>
-                     </td>
-                     <td>
-                         <div required style="display: flex; padding-right: 10px">
-                             <input type="text" class="form-control" name="performer" id="performer" placeholder="Имя Фамилия (можно указать несколько человек)">
-                             <button type="submit" class="btn btn-success" style="margin-left: 10px">Добавить</button>
-                         </div>
+                            <button type="submit" class="btn btn-success" style="margin-left: 10px">Добавить</button>
+                        </div>
                      </td>
                  </tr>
              </table>
@@ -86,7 +81,7 @@
                     {% if not info[0].deleted_at %}
                         <td>{{ info[0].act_number }}</td>
                         <td>{{ info[0].act_name }}</td>
-                        <td>{% for p in info[1]%} {{p.first_name}} {{p.last_name}} {% endfor %}</td>
+                        <td>{% for p in info[1]%} {{p.first_name}} {{p.last_name}} <br> {% endfor %}</td>
                         <td>{{ info[0].act_type_name }}</td>
                         <td>
                             <center>

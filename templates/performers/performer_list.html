@@ -28,6 +28,7 @@
                             <td><h5>Имя</h5></td>
                             <td><h5>Отчество</h5></td>
                             <td><h5>Откуда</h5></td>
+                            <td><h5>Номеров всего</h5></td>
                         <td>
                             <center>
                                 <h5>Редактировать</h5>
@@ -42,6 +43,7 @@
                     <td>{{p.first_name}}</td>
                     <td>{{p.middle_name}}</td>
                     <td>{{p.location_city}}</td>
+                    <td>{{p.performer_count}}</td>
                             <td>
                                 <center>
                                     <a href="{{url_for('performer_detail', id=p.id)}}">

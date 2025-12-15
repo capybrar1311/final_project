@@ -14,25 +14,6 @@
                 <input type="number" class="form-control" name="number" id="number" placeholder="Название" {% if act %} value='{{act.number}}' {% endif %}>
            </div>
 
-           <div style="padding-top: 1%">
-                <label for="performers" class="form-label">Исполнители</label>
-                <select class="form-select" name="performer_ids[]" id="performers" multiple>
-                     {% if not current_performers %}
-                        <option selected value="2">Выберите исполнителей</option>
-                     {% endif %}
-                     {% for p in performers %}
-                        <option value="{{p.id}}"
-                                {% if current_performers and p in current_performers%}
-                                selected
-                                {% endif %}>
-                            {{p.first_name}} {{p.last_name}}
-                        </option>
-                     {% endfor %}
-                 </select>
-
-
-           </div>
-
             <div>
                 <label for="type_id">Вид номера</label>
                  <select class="form-select" name="act_type_id" id="type_id">
@@ -41,7 +22,7 @@
                      {% endif %}
                      {% for type in act_types %}
                         <option value="{{type.id}}"
-                                {% if current_act_type and type.name == current_act_type.et_name%}
+                                {% if current_act_type and type.name == current_act_type.name%}
                                 selected
                                 {% endif %}>
                             {{type.name}}
@@ -49,7 +30,81 @@
                      {% endfor %}
                  </select>
             </div>
-
             <button type="submit" class="btn btn-success" style="margin-top: 3%; float: right"> {% if act %} Сохранить {% else %} Создать {% endif %}</button>
         </form>
+
+
+        {% if current_performers %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Фамилия</th>
+                    <th>Имя</th>
+                    <th>Отчество</th>
+                    <th>Город</th>
+                    <th>Редактировать</th>
+                    <th>Удалить</th>
+                </tr>
+            </thead>
+        {% for p in current_performers %}
+                <tr>
+                        <td>{{ p.last_name }}</td>
+                        <td>{{ p.first_name }}</td>
+                        <td>{{ p.middle_name }}</td>
+                        <td>{{ p.location_city }}</td>
+                        <td>
+                            <center>
+                                <a href="{{url_for('performer_detail', id=p.id)}}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                    </svg>
+                                </a>
+                            </center>
+                        </td>
+                            <td>
+                                <center>
+                                    <form action="{{url_for('delete_performer_act', act_id=act.id, performer_id=p.id)}}" method="post">
+                                        <button type="submit" class="btn btn-danger">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </center>
+                            </td>
+                </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+            <p>Нет добавленных исполнителей</p>
+        {% endif %}
+
+        <div>
+                <form method="post" action="{{url_for('set_performer_act', act_id=act.id)}}">
+                <label for="add_table">Добавление исполнителя в номер</label>
+                <table class="table" id="add_table">
+                    <tr>
+                        <td>
+                            <select class="form-select" name="performer_id" id="performers">
+                                    <option selected value="1">Выберите исполнителя</option>
+                                {% for p in performers %}
+                                    <option value="{{p.id}}"
+                                            {% if current_performers and p in current_performers%}
+                                            disabled
+                                            {% endif %}>
+                                        {{p.first_name}} {{p.last_name}}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <button type="submit" class="btn btn-success" >
+                                Добавить
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
 {% endblock %}
